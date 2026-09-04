@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mission Board — Sign In</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="auth-page">
+
+  <!-- Decorative side panel (desktop only) -->
+  <aside class="auth-side">
+    <div class="auth-side-top brand-mark">
+      <div class="brand-badge">✓</div>
+      <div>
+        <span class="brand-label">CIS 2102 To Do Exercise</span>
+        <span class="brand-tagline">Mission Board - To Do List Tracker</span>
+      </div>
+    </div>
+
+    <div class="auth-side-mid">
+      <h1>Every task<br>is <em>accomplished</em><br>one step<br>at a time.</h1>
+      <p>Organize your tasks. Track your progress.<br>Stay one step ahead of the chaos.</p>
+    </div>
+
+    <div class="auth-side-bottom dot-row">
+      <span class="dot c1"></span>
+      <span class="dot c2"></span>
+      <span class="dot c3"></span>
+    </div>
+  </aside>
+
+  <!-- Form side -->
+  <div class="auth-form-side">
+    <div class="auth-form-wrap">
+
+      <div class="brand-mark mobile-only" style="margin-bottom:40px;">
+        <div class="brand-badge">✓</div>
+        <div>
+          <span class="brand-label dark">CIS 2102 To Do Exercise</span>
+          <span class="brand-tagline dark">To Do List Tracker</span>
+        </div>
+      </div>
+
+      <!-- Sign In panel -->
+      <section id="signin-panel">
+        <h2 class="auth-heading">Welcome back.</h2>
+        <p class="auth-subtext">Sign in to access your to do list.</p>
+
+        <div id="signin-status"></div>
+
+        <form id="signin-form" class="auth-form" novalidate>
+          <div class="field">
+            <label class="field-label" for="signin-email">Email address</label>
+            <input class="auth-input" type="email" id="signin-email" name="email" required placeholder="you@example.com">
+          </div>
+          <div class="field">
+            <label class="field-label" for="signin-password">Password</label>
+            <input class="auth-input" type="password" id="signin-password" name="password" required placeholder="••••••••">
+          </div>
+          <button type="submit" class="primary-btn" id="signin-submit">Sign In</button>
+        </form>
+
+        <p class="auth-switch">
+          Don't have an account?
+          <button type="button" class="auth-switch-btn" id="show-signup">Sign Up</button>
+        </p>
+      </section>
+
+      <!-- Sign Up panel -->
+      <section id="signup-panel" style="display:none;">
+        <h2 class="auth-heading">Create account.</h2>
+        <p class="auth-subtext">Join and start organizing your tasks.</p>
+
+        <div id="signup-status"></div>
+
+        <form id="signup-form" class="auth-form" novalidate>
+          <div class="field">
+            <label class="field-label" for="signup-first-name">First name</label>
+            <input class="auth-input" type="text" id="signup-first-name" name="first_name" required placeholder="Juan">
+          </div>
+          <div class="field">
+            <label class="field-label" for="signup-last-name">Last name</label>
+            <input class="auth-input" type="text" id="signup-last-name" name="last_name" required placeholder="Dela Cruz">
+          </div>
+          <div class="field">
+            <label class="field-label" for="signup-email">Email address</label>
+            <input class="auth-input" type="email" id="signup-email" name="email" required placeholder="you@example.com">
+          </div>
+          <div class="field">
+            <label class="field-label" for="signup-password">Password</label>
+            <input class="auth-input" type="password" id="signup-password" name="password" required placeholder="••••••••">
+          </div>
+          <div class="field">
+            <label class="field-label" for="signup-confirm">Confirm password</label>
+            <input class="auth-input" type="password" id="signup-confirm" name="confirm_password" required placeholder="••••••••">
+          </div>
+          <button type="submit" class="primary-btn" id="signup-submit">Create Account</button>
+        </form>
+
+        <p class="auth-switch">
+          Already have an account?
+          <button type="button" class="auth-switch-btn" id="show-signin">Sign In</button>
+        </p>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+</body>
+</html>
