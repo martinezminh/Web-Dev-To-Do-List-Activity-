@@ -11,6 +11,7 @@
 
   let currentFilter = 'active';
   let deleteTargetId = null;
+  let lastLoadedTasks = []; // combined active + inactive, refreshed on every loadTasks()
 
   const listRegion = document.getElementById('task-list-region');
   const countActiveEl = document.getElementById('count-active');
@@ -54,6 +55,8 @@
 
       const activeTasks = normalizeItems(activeRes);
       const inactiveTasks = normalizeItems(inactiveRes);
+
+      lastLoadedTasks = activeTasks.concat(inactiveTasks);
 
       countActiveEl.textContent = activeTasks.length;
       countInactiveEl.textContent = inactiveTasks.length;
@@ -133,6 +136,24 @@
     return div.innerHTML;
   }
 
+  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  /**
+   * The server's CORS setup sometimes blocks us from reading a PUT/DELETE
+   * response even though the request itself succeeded — and the change can
+   * take a moment to actually land before a fresh fetch reflects it. So
+   * after an error, re-check reality a few times with short pauses instead
+   * of giving up after a single immediate re-fetch.
+   */
+  async function verifyChangeLanded(checkFn, attempts = 4, delayMs = 500) {
+    for (let i = 0; i < attempts; i++) {
+      await sleep(delayMs);
+      await loadTasks();
+      if (checkFn()) return true;
+    }
+    return false;
+  }
+
   /* ---------------- Filter tabs ---------------- */
 
   document.querySelectorAll('.filter-tab').forEach((tab) => {
@@ -208,6 +229,7 @@
       showToast(res.message, 'success');
     } catch (err) {
       setStatus(addStatus, err.message, 'error');
+      await loadTasks(); // resync in case the item actually saved despite the error
     } finally {
       addSubmit.disabled = false;
       addSubmit.textContent = 'Add Task';
@@ -243,9 +265,18 @@
       const res = await Api.editItem({ itemId, itemName: title, itemDescription: desc });
       closeModal('edit-modal-overlay');
       await loadTasks();
-      showToast(res.message, 'success');
+      showToast(res.message, 'success'); // "Item updated"
     } catch (err) {
-      setStatus(editStatus, err.message, 'error');
+      const landed = await verifyChangeLanded(() => {
+        const t = lastLoadedTasks.find((t) => String(t.item_id) === String(itemId));
+        return t && t.item_name === title;
+      });
+      if (landed) {
+        closeModal('edit-modal-overlay');
+        showToast('Item updated', 'success');
+      } else {
+        setStatus(editStatus, err.message, 'error');
+      }
     } finally {
       editSubmit.disabled = false;
       editSubmit.textContent = 'Save Changes';
@@ -256,14 +287,21 @@
 
   async function toggleTaskStatus(itemId, currentStatus) {
     const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+    const docSuccessMessage = newStatus === 'active' ? 'To do item activated.' : 'To do item done.';
     try {
-      // Response message is exactly what the API returns, e.g.
-      // "To do item activated." or "To do item done."
       const res = await Api.setItemStatus({ itemId, status: newStatus });
       await loadTasks();
       showToast(res.message, 'success');
     } catch (err) {
-      showToast(err.message, 'error');
+      const landed = await verifyChangeLanded(() => {
+        const t = lastLoadedTasks.find((t) => String(t.item_id) === String(itemId));
+        return t && t.status === newStatus;
+      });
+      if (landed) {
+        showToast(docSuccessMessage, 'success');
+      } else {
+        showToast(err.message, 'error');
+      }
     }
   }
 
@@ -287,9 +325,19 @@
       closeModal('delete-modal-overlay');
       deleteTargetId = null;
       await loadTasks();
-      showToast(res.message, 'success');
+      showToast(res.message, 'success'); // "Item deleted"
     } catch (err) {
-      setStatus(deleteStatus, err.message, 'error');
+      const targetId = deleteTargetId;
+      const landed = await verifyChangeLanded(() => {
+        return !lastLoadedTasks.some((t) => String(t.item_id) === String(targetId));
+      });
+      if (landed) {
+        closeModal('delete-modal-overlay');
+        deleteTargetId = null;
+        showToast('Item deleted', 'success');
+      } else {
+        setStatus(deleteStatus, err.message, 'error');
+      }
     } finally {
       deleteConfirmBtn.disabled = false;
       deleteConfirmBtn.textContent = 'Delete';
